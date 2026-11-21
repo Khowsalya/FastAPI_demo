@@ -46,3 +46,32 @@ def get_loan_by_id(db: Session, loan_id: int):
     loan = result.scalar_one_or_none()
 
     return loan
+
+def update_loan(db: Session, loan_id: int, loan_data: dict):
+    loan = db.get(Loan, loan_id)
+
+    if loan is None:
+        return None
+
+    loan.business_name = loan_data["business_name"]
+    loan.annual_turnover = loan_data["annual_turnover"]
+    loan.loan_amount = loan_data["loan_amount"]
+
+    db.commit()
+    db.refresh(loan)
+
+    return loan
+
+def patch_loan(db: Session, loan_id: int, loan_data: dict):
+    loan = db.get(Loan, loan_id)
+
+    if loan is None:
+        return None
+
+    for field, value in loan_data.items():
+        setattr(loan, field, value)
+
+    db.commit()
+    db.refresh(loan)
+
+    return loan
