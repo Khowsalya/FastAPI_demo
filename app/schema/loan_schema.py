@@ -41,3 +41,53 @@ class LoanPartialUpdateRequest(BaseModel):
         if value is not None and isinstance(value, str) and not value.strip():
             raise ValueError("Business name cannot be empty")
         return value
+
+
+
+from pydantic import BaseModel
+
+
+class LoanResponse(BaseModel):
+    id: int
+    applicant_id: int
+    business_name: str
+    annual_turnover: float
+    loan_amount: float
+    loan_status: str
+    reason: str | None = None
+
+    model_config = {
+        "from_attributes": True
+    }
+
+
+# GET ALL
+class LoanListResponse(BaseModel):
+    api_version: str
+    loans: list[LoanResponse]
+
+
+# GET BY ID
+class LoanDetailResponse(BaseModel):
+    api_version: str
+    loan: LoanResponse
+
+
+# CREATE
+class LoanCreatedResponse(BaseModel):
+    api_version: str
+    message: str
+    loan: LoanResponse
+
+
+# PUT / PATCH
+class LoanUpdatedResponse(BaseModel):
+    api_version: str
+    message: str
+    loan: LoanResponse
+
+
+# DELETE
+class LoanDeletedResponse(BaseModel):
+    api_version: str
+    message: str

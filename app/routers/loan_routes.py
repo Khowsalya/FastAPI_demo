@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from app.schema.loan_schema import LoanRequest,LoanUpdateRequest,LoanPartialUpdateRequest
-from app.service.loan_service import process_loan,fetch_all_loans,fetch_loan_by_id,update_loan,patch_loan
+from app.schema.loan_schema import LoanRequest,LoanUpdateRequest,LoanPartialUpdateRequest, LoanListResponse ,LoanDetailResponse,LoanCreatedResponse, LoanUpdatedResponse,LoanDeletedResponse
+from app.service.loan_service import process_loan,fetch_all_loans,fetch_loan_by_id,update_loan,patch_loan, delete_loan_service
 from app.dependencies.dependencies import get_api_version,get_db
 
 
@@ -9,7 +9,7 @@ router = APIRouter(prefix="/loans",tags=["loans"])
 
 
 @router.post("/")
-def create_loan(loan_request:LoanRequest,db: Session=Depends(get_db),api_version:str=Depends(get_api_version)):
+def create_loan(loan_request:LoanRequest,db: Session=Depends(get_db),api_version:str=Depends(get_api_version),status_code=201):
     result= process_loan(loan_request,db)
 
     return {
@@ -17,7 +17,7 @@ def create_loan(loan_request:LoanRequest,db: Session=Depends(get_db),api_version
         "loan_data":result
     }
 
-@router.get("/")
+@router.get("/",response_model=LoanListResponse)
 def get_all_loan_details(
     db: Session = Depends(get_db),
     api_version: str = Depends(get_api_version)
@@ -30,7 +30,7 @@ def get_all_loan_details(
         "loans": loans
     }
 
-@router.get("/{loan_id}")
+@router.get("/{loan_id}",response_model=LoanDetailResponse)
 def get_loan_details(
     loan_id: int,
     db: Session = Depends(get_db),
@@ -50,32 +50,7 @@ def get_loan_details(
     }
 
 
-@router.put("/{loan_id}")
-def update_loan_details(
-    loan_id: int,
-    loan_request: LoanUpdateRequest,
-    db: Session = Depends(get_db),
-    api_version: str = Depends(get_api_version)
-):
-    loan = update_loan(
-        db,
-        loan_id,
-        loan_request.model_dump()
-    )
-
-    if loan is None:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Loan with ID {loan_id} not found"
-        )
-
-    return {
-        "api_version": api_version,
-        "message": "Loan updated successfully",
-        "loan": loan
-    }
-
-@router.put("/{loan_id}")
+@router.put("/{loan_id}",response_model=LoanUpdatedResponse)
 def update_loan_details(
     loan_id: int,
     loan_request: LoanUpdateRequest,
@@ -101,7 +76,7 @@ def update_loan_details(
     }
 
 
-@router.patch("/{loan_id}")
+@router.patch("/{loan_id}",response_model=LoanUpdatedResponse)
 def patch_loan_details(
     loan_id: int,
     loan_request: LoanPartialUpdateRequest,
@@ -131,4 +106,23 @@ def patch_loan_details(
         "api_version": api_version,
         "message": "Loan updated successfully",
         "loan": loan
+    }
+
+@router.delete("/{loan_id}",response_model=LoanDeletedResponse)
+def delete_loan_details(
+    loan_id: int,
+    db: Session = Depends(get_db),
+    api_version: str = Depends(get_api_version)
+):
+    loan = delete_loan_service(db, loan_id)
+
+    if loan is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Loan with ID {loan_id} not found"
+        )
+
+    return {
+        "api_version": api_version,
+        "message": f"Loan with ID {loan_id} deleted successfully"
     }

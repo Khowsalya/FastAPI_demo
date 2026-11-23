@@ -75,3 +75,15 @@ def patch_loan(db: Session, loan_id: int, loan_data: dict):
     db.refresh(loan)
 
     return loan
+
+
+def delete_loan(db: Session, loan_id: int):
+    loan = db.get(Loan, loan_id)
+
+    if loan is None:
+        return None
+
+    db.delete(loan)
+    db.commit()
+
+    return loan

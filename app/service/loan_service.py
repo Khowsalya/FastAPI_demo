@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from app.models.loan_model import Loan
 from app.schema.loan_schema import LoanRequest
 from app.domain.eligibility import check_eligibility
-from app.repoistories.loan_respoistories import save_loan,get_all_loans,get_loan_by_id
+from app.repoistories.loan_respoistories import save_loan,get_all_loans,get_loan_by_id, delete_loan
 
 
 def process_loan(loan_request:LoanRequest,db:Session)->dict:
@@ -57,3 +57,6 @@ def patch_loan(db: Any, loan_id: int, loan_data: dict):
     db.refresh(loan)
 
     return loan
+
+def delete_loan_service(db: Session, loan_id: int):
+    return delete_loan(db, loan_id)
